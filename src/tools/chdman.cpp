@@ -858,11 +858,16 @@ static int print_help(const std::string &argv0, const char *error = nullptr)
 //  command
 //-------------------------------------------------
 
-static int print_help(const std::string &argv0, const command_description &desc, const char *error = nullptr)
+static int print_help(const std::string &argv0, const command_description &desc, const char *error = nullptr, const char *additional_info = nullptr)
 {
 	// print the error message first
 	if (error != nullptr)
-		fprintf(stderr, "Error: %s\n\n", error);
+	{
+		if (additional_info)
+			fprintf(stderr, "Error: %s (%s)\n\n", error, additional_info);
+		else
+			fprintf(stderr, "Error: %s\n\n", error);
+	}
 
 	// print usage for this command
 	printf("Usage:\n");
@@ -2996,20 +3001,20 @@ int CLIB_DECL main(int argc, char *argv[])
 						if (odesc.parameter)
 						{
 							if (argnum >= args.size() || (!args[argnum].empty() && args[argnum][0] == '-'))
-								return print_help(args[0], desc, "Option is missing parameter");
+								return print_help(args[0], desc, "Option is missing parameter", arg.c_str());
 							param = args[argnum++].c_str();
 						}
 
 						// add to the map
 						if (!parameters.insert(std::make_pair(odesc.name, new std::string(param))).second)
-							return print_help(args[0], desc, "Multiple parameters of the same type specified");
+							return print_help(args[0], desc, "Multiple parameters of the same type specified", arg.c_str());
 						break;
 					}
 				}
 
 				// if not valid, error
 				if (valid == ARRAY_LENGTH(desc.valid_options))
-					return print_help(args[0], desc, "Option not valid for this command");
+					return print_help(args[0], desc, "Option not valid for this command", arg.c_str());
 			}
 
 			// make sure we got all our required parameters
